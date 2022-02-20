@@ -34,6 +34,14 @@
   :type 'string
   :group 'dconf-wrangler)
 
+(defcustom dconf-wrangler-dconf-config-file-path (f-join (or (getenv "XDG_CONFIG_HOME")
+                                                             (expand-file-name "~/.config"))
+                                                         "dconf-user.conf")
+  "Path to dconf config file to operate on")
+(defvar dconf-wrangler--source-buffer nil)
+
+(defvar dconf-wrangler--target-buffer nil)
+
 (define-derived-mode dconf-wrangler-dump-mode special-mode "dconf dump"
   "Mode for browsing output of `dconf dump`"
   :group 'dconf-wrangler
@@ -43,14 +51,24 @@
   (conf-mode-initialize "#" 'conf-toml-font-lock-keywords)
   (read-only-mode +1))
 
+(defun dconf-wrangler--init-target ()
+  (let ((target-buffer (get-buffer-create "*dconf-wrangler-target*")))
+    (setq dconf-wrangler--target-buffer target-buffer)
+    (with-current-buffer-window target-buffer nil nil
+      (insert-file-contents dconf-wrangler-dconf-config-file-path)
+      (conf-toml-mode)))
+  )
+
 (defun dconf-wrangler-dump ()
   "dconf dump"
   (interactive)
-  (let ((buffer (get-buffer-create "*dconf-wrangler-dump*"))
+  (let ((source-buffer (get-buffer-create "*dconf-wrangler-dump*"))
         (command (format "dconf dump %s" dconf-wrangler-dump-base-schema)))
-    (with-current-buffer-window buffer nil nil
-      (shell-command command buffer "*Messages*")
-      (dconf-wrangler-dump-mode))))
+    (setq dconf-wrangler--source-buffer source-buffer)
+    (with-current-buffer-window source-buffer nil nil
+      (shell-command command source-buffer "*Messages*")
+      (dconf-wrangler-dump-mode)))
+  (dconf-wrangler--init-target))
 
 (provide 'dconf-wrangler)
 
