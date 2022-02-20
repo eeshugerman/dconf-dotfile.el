@@ -51,24 +51,32 @@
   (conf-mode-initialize "#" 'conf-toml-font-lock-keywords)
   (read-only-mode +1))
 
-(defun dconf-wrangler--init-target ()
-  (let ((target-buffer (get-buffer-create "*dconf-wrangler-target*")))
+(defun dconf-wrangler--init (source-type)
+  (let* ((frame (make-frame))
+         (target-window (frame-root-window frame))
+         (source-window (split-window target-window nil 'right))
+         (target-buffer (get-buffer-create "*dconf-wrangler-target*"))
+         (source-buffer (get-buffer-create (format "*dconf-wrangler-%s*" source-type))))
+
+
+    (set-window-buffer target-window target-buffer)
+    (set-window-buffer source-window source-buffer)
+
+    (setq dconf-wrangler--source-buffer source-buffer)
     (setq dconf-wrangler--target-buffer target-buffer)
-    (with-current-buffer-window target-buffer nil nil
+
+    (with-current-buffer target-buffer
       (insert-file-contents dconf-wrangler-dconf-config-file-path)
-      (conf-toml-mode)))
-  )
+      (conf-toml-mode))))
 
 (defun dconf-wrangler-dump ()
   "dconf dump"
   (interactive)
-  (let ((source-buffer (get-buffer-create "*dconf-wrangler-dump*"))
-        (command (format "dconf dump %s" dconf-wrangler-dump-base-schema)))
-    (setq dconf-wrangler--source-buffer source-buffer)
-    (with-current-buffer-window source-buffer nil nil
-      (shell-command command source-buffer "*Messages*")
-      (dconf-wrangler-dump-mode)))
-  (dconf-wrangler--init-target))
+  (dconf-wrangler--init "dump")
+  (let ((command (format "dconf dump %s" dconf-wrangler-dump-base-schema))
+        (source-buffer dconf-wrangler--source-buffer))
+    (shell-command command source-buffer "*Messages*")
+    (with-current-buffer source-buffer (dconf-wrangler-dump-mode))))
 
 (provide 'dconf-wrangler)
 
