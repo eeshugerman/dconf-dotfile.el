@@ -32,27 +32,25 @@
 (defcustom dconf-wrangler-dump-base-schema "/"
   "Base dconf schema to operate on"
   :type 'string
-  :group 'dconf)
+  :group 'dconf-wrangler)
 
-(defvar dconf-wrangler-dump-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "q" #'kill-current-buffer) ;; conflict w/ evil
-    map))
-
-(define-derived-mode dconf-wrangler-dump-mode conf-mode "dconf dump"
-  (read-only-mode +1)
-  (use-local-map dconf-wrangler-dump-mode-map))
-
+(define-derived-mode dconf-wrangler-dump-mode special-mode "dconf dump"
+  "Mode for browsing output of `dconf dump`"
+  :group 'dconf-wrangler
+  ;; doesn't seem to matter for syntax highlighting but maybe does for other stuff?
+  :syntax-table conf-toml-mode-syntax-table
+  ;; use conf-toml-mode's syntax highlighting
+  (conf-mode-initialize "#" 'conf-toml-font-lock-keywords)
+  (read-only-mode +1))
 
 (defun dconf-wrangler-dump ()
   "dconf dump"
   (interactive)
   (let ((buffer (get-buffer-create "*dconf-wrangler-dump*"))
         (command (format "dconf dump %s" dconf-wrangler-dump-base-schema)))
-    (with-temp-buffer buffer
-                      (shell-command command buffer "*Messages*")
-                      (pop-to-buffer buffer)
-                      (dconf-wrangler-dump-mode))))
+    (with-current-buffer-window buffer nil nil
+      (shell-command command buffer "*Messages*")
+      (dconf-wrangler-dump-mode))))
 
 (provide 'dconf-wrangler)
 
