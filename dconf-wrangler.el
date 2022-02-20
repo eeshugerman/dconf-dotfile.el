@@ -56,7 +56,7 @@
   (let* ((frame (make-frame))
          (target-window (frame-root-window frame))
          (source-window (split-window target-window nil 'right))
-         (target-buffer (get-buffer-create "*dconf-wrangler-target*"))
+         (target-buffer (find-file dconf-wrangler-dconf-config-file-path))
          (source-buffer (get-buffer-create (format "*dconf-wrangler-%s*" source-type))))
 
     (setq dconf-wrangler--frame frame)
@@ -66,9 +66,7 @@
     (set-window-buffer target-window target-buffer)
     (set-window-buffer source-window source-buffer)
 
-    (with-current-buffer target-buffer
-      (insert-file-contents dconf-wrangler-dconf-config-file-path)
-      (conf-toml-mode))))
+    (with-current-buffer target-buffer (conf-toml-mode))))
 
 (defun dconf-wrangler-dump ()
   "dconf dump"
@@ -79,12 +77,10 @@
     (shell-command command source-buffer "*Messages*")
     (with-current-buffer source-buffer (dconf-wrangler-dump-mode))))
 
+
 (defun dconf-wrangler-quit ()
   (interactive)
-  ;; todo: only ask when there are actually changes
-  (when (y-or-n-p (format "Save changes to %s?"
-                          dconf-wrangler-dconf-config-file-path))
-    (write-region nil nil dconf-wrangler-dconf-config-file-path))
+  ;; todo: prompt to save if there are changes
   (kill-buffer dconf-wrangler--target-buffer)
   (kill-buffer dconf-wrangler--source-buffer)
   (delete-frame dconf-wrangler--frame))
