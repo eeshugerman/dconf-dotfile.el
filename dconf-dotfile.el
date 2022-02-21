@@ -5,6 +5,8 @@
 ;; Author: elliott<eeshugerman@gmail.com>
 ;; Version: 0.0.1
 ;; Keywords: convenience, data, tools, maint
+;; Homepage: https://github.com/eeshugerman/dconf-dotfile.el
+;; Package-Requires: ((emacs "26.1"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -26,25 +28,31 @@
 ;;; Code:
 
 
+(require 'f)
+(require 'conf-mode)
+
 (defgroup dconf-dotfile nil
-  "Plain text dconf management tool")
+  "A plain text dconf management tool."
+  :group 'applications)
 
 (defcustom dconf-dotfile-dump-base-schema "/"
-  "Base dconf schema to operate on"
+  "The base dconf schema to operate on."
   :type 'string
   :group 'dconf-dotfile)
 
 (defcustom dconf-dotfile-dconf-config-file-path (f-join (or (getenv "XDG_CONFIG_HOME")
                                                              (expand-file-name "~/.config"))
                                                          "dconf-user.conf")
-  "Path to dconf config file to operate on")
+  "The path to dconf config file to operate on."
+  :type 'string
+  :group 'dconf)
 
 (defvar dconf-dotfile--frame nil)
 (defvar dconf-dotfile--source-buffer nil)
 (defvar dconf-dotfile--target-buffer nil)
 
 (define-derived-mode dconf-dotfile-dump-mode special-mode "dconf dump"
-  "Mode for browsing output of `dconf dump`"
+  "Mode for browsing output of `dconf dump`."
   :group 'dconf-dotfile
   ;; doesn't seem to matter for syntax highlighting but maybe does for other stuff?
   :syntax-table conf-toml-mode-syntax-table
@@ -59,9 +67,9 @@
          (target-buffer (find-file dconf-dotfile-dconf-config-file-path))
          (source-buffer (get-buffer-create (format "*dconf-dotfile-%s*" source-type))))
 
-    (setq dconf-dotfile--frame frame)
-    (setq dconf-dotfile--source-buffer source-buffer)
-    (setq dconf-dotfile--target-buffer target-buffer)
+    (setq dconf-dotfile--frame frame
+          dconf-dotfile--source-buffer source-buffer
+          dconf-dotfile--target-buffer target-buffer)
 
     (set-window-buffer target-window target-buffer)
     (set-window-buffer source-window source-buffer)
@@ -69,7 +77,6 @@
     (with-current-buffer target-buffer (conf-toml-mode))))
 
 (defun dconf-dotfile-dump ()
-  "dconf dump"
   (interactive)
   (dconf-dotfile--init "dump")
   (let ((command (format "dconf dump %s" dconf-dotfile-dump-base-schema))
