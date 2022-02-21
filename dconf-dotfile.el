@@ -1,4 +1,4 @@
-;;; dconf-wrangler.el --- Plain text dconf management tool  -*- lexical-binding: t; -*-
+;;; dconf-dotfile.el --- Plain text dconf management tool  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022  elliott
 
@@ -26,65 +26,65 @@
 ;;; Code:
 
 
-(defgroup dconf-wrangler nil
+(defgroup dconf-dotfile nil
   "Plain text dconf management tool")
 
-(defcustom dconf-wrangler-dump-base-schema "/"
+(defcustom dconf-dotfile-dump-base-schema "/"
   "Base dconf schema to operate on"
   :type 'string
-  :group 'dconf-wrangler)
+  :group 'dconf-dotfile)
 
-(defcustom dconf-wrangler-dconf-config-file-path (f-join (or (getenv "XDG_CONFIG_HOME")
+(defcustom dconf-dotfile-dconf-config-file-path (f-join (or (getenv "XDG_CONFIG_HOME")
                                                              (expand-file-name "~/.config"))
                                                          "dconf-user.conf")
   "Path to dconf config file to operate on")
 
-(defvar dconf-wrangler--frame nil)
-(defvar dconf-wrangler--source-buffer nil)
-(defvar dconf-wrangler--target-buffer nil)
+(defvar dconf-dotfile--frame nil)
+(defvar dconf-dotfile--source-buffer nil)
+(defvar dconf-dotfile--target-buffer nil)
 
-(define-derived-mode dconf-wrangler-dump-mode special-mode "dconf dump"
+(define-derived-mode dconf-dotfile-dump-mode special-mode "dconf dump"
   "Mode for browsing output of `dconf dump`"
-  :group 'dconf-wrangler
+  :group 'dconf-dotfile
   ;; doesn't seem to matter for syntax highlighting but maybe does for other stuff?
   :syntax-table conf-toml-mode-syntax-table
   ;; use conf-toml-mode's syntax highlighting
   (conf-mode-initialize "#" 'conf-toml-font-lock-keywords)
   (read-only-mode +1))
 
-(defun dconf-wrangler--init (source-type)
+(defun dconf-dotfile--init (source-type)
   (let* ((frame (make-frame))
          (target-window (frame-root-window frame))
          (source-window (split-window target-window nil 'right))
-         (target-buffer (find-file dconf-wrangler-dconf-config-file-path))
-         (source-buffer (get-buffer-create (format "*dconf-wrangler-%s*" source-type))))
+         (target-buffer (find-file dconf-dotfile-dconf-config-file-path))
+         (source-buffer (get-buffer-create (format "*dconf-dotfile-%s*" source-type))))
 
-    (setq dconf-wrangler--frame frame)
-    (setq dconf-wrangler--source-buffer source-buffer)
-    (setq dconf-wrangler--target-buffer target-buffer)
+    (setq dconf-dotfile--frame frame)
+    (setq dconf-dotfile--source-buffer source-buffer)
+    (setq dconf-dotfile--target-buffer target-buffer)
 
     (set-window-buffer target-window target-buffer)
     (set-window-buffer source-window source-buffer)
 
     (with-current-buffer target-buffer (conf-toml-mode))))
 
-(defun dconf-wrangler-dump ()
+(defun dconf-dotfile-dump ()
   "dconf dump"
   (interactive)
-  (dconf-wrangler--init "dump")
-  (let ((command (format "dconf dump %s" dconf-wrangler-dump-base-schema))
-        (source-buffer dconf-wrangler--source-buffer))
+  (dconf-dotfile--init "dump")
+  (let ((command (format "dconf dump %s" dconf-dotfile-dump-base-schema))
+        (source-buffer dconf-dotfile--source-buffer))
     (shell-command command source-buffer "*Messages*")
-    (with-current-buffer source-buffer (dconf-wrangler-dump-mode))))
+    (with-current-buffer source-buffer (dconf-dotfile-dump-mode))))
 
 
-(defun dconf-wrangler-quit ()
+(defun dconf-dotfile-quit ()
   (interactive)
   ;; todo: prompt to save if there are changes
-  (kill-buffer dconf-wrangler--target-buffer)
-  (kill-buffer dconf-wrangler--source-buffer)
-  (delete-frame dconf-wrangler--frame))
+  (kill-buffer dconf-dotfile--target-buffer)
+  (kill-buffer dconf-dotfile--source-buffer)
+  (delete-frame dconf-dotfile--frame))
 
-(provide 'dconf-wrangler)
+(provide 'dconf-dotfile)
 
-;;; dconf-wrangler.el ends here
+;;; dconf-dotfile.el ends here
