@@ -35,14 +35,14 @@
   "A plain text dconf management tool."
   :group 'applications)
 
-(defcustom dconf-dotfile-dump-base-schema "/"
+(defcustom dconf-dotfile-base-schema "/"
   "The base dconf schema to operate on."
   :type 'string
   :group 'dconf-dotfile)
 
-(defcustom dconf-dotfile-dconf-config-file-path (f-join (or (getenv "XDG_CONFIG_HOME")
-                                                             (expand-file-name "~/.config"))
-                                                         "dconf-user.conf")
+(defcustom dconf-dotfile-dotfile-path (f-join (or (getenv "XDG_CONFIG_HOME")
+                                                  (expand-file-name "~/.config"))
+                                              "dconf-user.conf")
   "The path to dconf config file to operate on."
   :type 'string
   :group 'dconf)
@@ -64,7 +64,7 @@
   (let* ((frame (make-frame))
          (target-window (frame-root-window frame))
          (source-window (split-window target-window nil 'right))
-         (target-buffer (find-file dconf-dotfile-dconf-config-file-path))
+         (target-buffer (find-file dconf-dotfile-dotfile-path))
          (source-buffer (get-buffer-create (format "*dconf-dotfile-%s*" source-type))))
 
     (setq dconf-dotfile--frame frame
@@ -79,7 +79,7 @@
 (defun dconf-dotfile-dump ()
   (interactive)
   (dconf-dotfile--init "dump")
-  (let ((command (format "dconf dump %s" dconf-dotfile-dump-base-schema))
+  (let ((command (format "dconf dump %s" dconf-dotfile-base-schema))
         (source-buffer dconf-dotfile--source-buffer))
     (shell-command command source-buffer "*Messages*")
     (with-current-buffer source-buffer (dconf-dotfile-dump-mode))))
@@ -95,8 +95,8 @@
 (defun dconf-dotfile-load ()
   (interactive)
   (shell-command (format "dconf load %s < %s"
-                         dconf-dotfile-dump-base-schema
-                         dconf-dotfile-dconf-config-file-path)))
+                         dconf-dotfile-base-schema
+                         dconf-dotfile-dotfile-path)))
 (provide 'dconf-dotfile)
 
 ;;; dconf-dotfile.el ends here
