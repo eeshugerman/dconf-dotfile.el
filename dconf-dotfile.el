@@ -92,6 +92,11 @@
   (kill-buffer dconf-dotfile--source-buffer)
   (delete-frame dconf-dotfile--frame))
 
+(defun dconf-dotfile-load ()
+  (interactive)
+  (shell-command (format "dconf load %s < %s"
+                         dconf-dotfile-dump-base-schema
+                         dconf-dotfile-dconf-config-file-path)))
 (provide 'dconf-dotfile)
 
 ;;; dconf-dotfile.el ends here
