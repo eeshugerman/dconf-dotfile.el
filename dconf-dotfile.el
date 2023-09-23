@@ -60,29 +60,28 @@
   (conf-mode-initialize "#" 'conf-toml-font-lock-keywords)
   (read-only-mode +1))
 
-(defun dconf-dotfile--init (source-type)
+(defun dconf-dotfile-compare ()
+  (interactive)
   (let* ((frame (make-frame))
          (target-window (frame-root-window frame))
          (source-window (split-window target-window nil 'right))
          (target-buffer (find-file dconf-dotfile-dotfile-path))
-         (source-buffer (get-buffer-create (format "*dconf-dotfile-%s*" source-type))))
+         (source-buffer (get-buffer-create "*dconf-dotfile::state*")))
+
+    (select-frame frame)
+
+    ;; weirdly this isn't needed and in fact breaks it?
+    ;; (set-window-buffer target-window target-buffer)
+    ;; (set-window-buffer source-window source-buffer)
 
     (setq dconf-dotfile--frame frame
           dconf-dotfile--source-buffer source-buffer
           dconf-dotfile--target-buffer target-buffer)
 
-    (set-window-buffer target-window target-buffer)
-    (set-window-buffer source-window source-buffer)
-
-    (with-current-buffer target-buffer (conf-toml-mode))))
-
-(defun dconf-dotfile-dump ()
-  (interactive)
-  (dconf-dotfile--init "dump")
-  (let ((command (format "dconf dump %s" dconf-dotfile-base-schema))
-        (source-buffer dconf-dotfile--source-buffer))
-    (shell-command command source-buffer "*Messages*")
-    (with-current-buffer source-buffer (dconf-dotfile-dump-mode))))
+    (shell-command (format "dconf dump %s" dconf-dotfile-base-schema)  source-buffer "*Messages*")
+    (with-current-buffer target-buffer (conf-toml-mode))
+    (with-current-buffer source-buffer (conf-toml-mode)))
+  )
 
 
 (defun dconf-dotfile-quit ()
