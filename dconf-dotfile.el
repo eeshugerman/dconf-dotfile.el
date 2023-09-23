@@ -60,7 +60,7 @@
   (conf-mode-initialize "#" 'conf-toml-font-lock-keywords)
   (read-only-mode +1))
 
-(defun dconf-dotfile-compare ()
+(defun dconf-dotfile-start ()
   (interactive)
   (let* ((frame (make-frame))
          (target-window (frame-root-window frame))
