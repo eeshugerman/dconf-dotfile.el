@@ -65,19 +65,19 @@
   (let* ((frame (make-frame))
          (target-window (frame-root-window frame))
          (source-window (split-window target-window nil 'right))
-         (target-buffer (find-file dconf-dotfile-dotfile-path))
+         (target-buffer (find-file-noselect dconf-dotfile-dotfile-path))
          (source-buffer (get-buffer-create "*dconf-dotfile::state*")))
 
     (select-frame frame)
 
-    ;; weirdly this isn't needed and in fact breaks it?
-    ;; (set-window-buffer target-window target-buffer)
-    ;; (set-window-buffer source-window source-buffer)
+    (set-window-buffer target-window target-buffer)
+    (set-window-buffer source-window source-buffer)
 
     (setq dconf-dotfile--frame frame
           dconf-dotfile--source-buffer source-buffer
           dconf-dotfile--target-buffer target-buffer)
 
+    ;; TODO: make this callable as standalone dconf-dotfile-dump
     (shell-command (format "dconf dump %s" dconf-dotfile-base-schema)  source-buffer "*Messages*")
     (with-current-buffer target-buffer (conf-toml-mode))
     (with-current-buffer source-buffer (conf-toml-mode)))
