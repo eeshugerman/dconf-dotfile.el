@@ -63,7 +63,8 @@
 (defun dconf-dotfile-start ()
   (interactive)
   (let* ((frame (make-frame))
-         (target-window (frame-root-window frame))
+         (target-window (cl-letf (((symbol-function 'persp-init-new-frame) #'ignore))
+                          (frame-first-window frame)))
          (source-window (split-window target-window nil 'right))
          (target-buffer (find-file-noselect dconf-dotfile-dotfile-path))
          (source-buffer (get-buffer-create "*dconf-dotfile::state*")))
@@ -80,8 +81,7 @@
     ;; TODO: make this callable as standalone dconf-dotfile-dump
     (shell-command (format "dconf dump %s" dconf-dotfile-base-schema)  source-buffer "*Messages*")
     (with-current-buffer target-buffer (conf-toml-mode))
-    (with-current-buffer source-buffer (conf-toml-mode)))
-  )
+    (with-current-buffer source-buffer (conf-toml-mode))))
 
 
 (defun dconf-dotfile-quit ()
